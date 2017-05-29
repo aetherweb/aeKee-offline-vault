@@ -901,7 +901,7 @@ function doSaveUNS()
   	no_need_confirm = false;
   }
 
-  if ((encrypted.length>0) && (no_need_confirm || confirm('About to save ' + count + ' records. OK?')))
+  if ((encrypted.length>0) && (no_need_confirm || confirm('About to save ' + (count-1) + ' records. OK?')))
   {
   	var d = encodeURIComponent(encrypted);
   	var o = encodeURIComponent(encUn);
