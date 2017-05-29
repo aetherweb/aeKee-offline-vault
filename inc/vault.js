@@ -218,10 +218,10 @@ function encryptAndMac(message)
    
     // encrypt this.
     var encrypted = CryptoJS.AES.encrypt(message, kekm['ke'], {
-    			iv: iv,
-			    mode: CryptoJS.mode.CBC, 
-    			padding: CryptoJS.pad.Pkcs7
-    		});
+				iv: iv,
+				mode: CryptoJS.mode.CBC,
+				padding: CryptoJS.pad.Pkcs7
+			});
 
     //Calculate HMAC of iv + encrypted...
     var HMAC = CryptoJS.HmacSHA256(ivs+encrypted.toString(), kekm['km']);
@@ -315,6 +315,20 @@ document.addEventListener('DOMContentLoaded',function()
 
 	input_vaultdata = document.getElementById('vaultdata');
 	input_vaultdata.addEventListener("blur", vaultDataChange);
+
+	// vault data available in local storage?
+	if (typeof(Storage) !== "undefined")
+	{
+		if (localStorage.vaultdata && localStorage.vaultdata.length>0)
+		{
+		   input_vaultdata.value = localStorage.vaultdata;
+		   doSysMsg('Vaultdata loaded from browser local storage. Do not rely on this - copy, paste and save (and back up) your vaultdata!');
+		}
+	} 
+	else
+	{
+	    // Sorry! No Web Storage support..
+	}
 
 	// attempt to load up vault data from content of textarea now...
 	vaultDataChange();
@@ -896,12 +910,15 @@ function doSaveUNS()
 	// master password
 	if (theusername == input_sp.value)
 	{
-		document.getElementById('vaultdata').value = encrypted;
+		input_vaultdata.value = encrypted;
 	}
 	else
 	{
-		document.getElementById('vaultdata').value = theusername + '\n' + encrypted;
+		input_vaultdata.value = theusername + '\n' + encrypted;
 	}
+
+    // Attempt to store this in local storage if we can
+    doLocalStorage('vaultdata',input_vaultdata.value);
     
     // update local crypt...
     encUn = encrypted;
@@ -921,6 +938,19 @@ function doSaveUNS()
   	updatingUN = false;
   }
   cryptOverlay(false);
+}
+
+function doLocalStorage(name,val)
+{
+	if (typeof(Storage) !== "undefined") 
+	{
+	    localStorage.setItem(name, val);
+	    doSysMsg('Vaultdata saved to browser local storage - it should re-load automatically when you refresh this page. Do not rely on this - copy, paste and save (and back up) your vaultdata!');
+	} 
+	else
+	{
+	    // Sorry! No Web Storage support..
+	}
 }
 
 function saveResponse()
