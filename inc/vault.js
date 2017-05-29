@@ -183,7 +183,7 @@ function getMpItMod(mp)
 function getKeKm(salt)
 {
   var kekm   = {ke:'',km:''};
-  if (theusername.length == 0) { theusername = input_sp.value; }
+  if (theusername.length === 0) { theusername = genUsername(); }
   var encpp  = getAESkey(theusername+salt);
   var ke     = encpp.substring(0,encpp.length/2);
   var km     = encpp.substring(encpp.length/2,encpp.length);
@@ -192,16 +192,26 @@ function getKeKm(salt)
   return kekm;
 }
 
+function genUsername()
+{
+    var rnd = CryptoJS.lib.WordArray.random(16).toString();
+    return saltthepass.saltthepass('sha3', rnd, '', '').substring(0,30);
+}
+
 function encryptAndMac(message)
 {
   err = 'unknown error';
   try {
-    var ivl = 22; 
+    var ivl = 22;
 
     // generate a random iv
     var rnd     = CryptoJS.lib.WordArray.random(16).toString();
     var ivs = saltthepass.saltthepass('sha3', rnd, '', '').substring(0,ivl);
     var iv      = CryptoJS.enc.Base64.parse(ivs);
+
+    // if at this point the value in 'theusername' is the master
+    // password, change this now
+    if (input_sp.value == theusername) { theusername = genUsername(); }
 
     // get the keys (passing the iv additionally as a salt modifier)
     var kekm = getKeKm(ivs);
@@ -227,12 +237,17 @@ function encryptAndMac(message)
 function decryptMacAnd(message)
 {
   try {
-    var ivl = 22;
-    var hml = 64;
+    var ivl = 22; // initialisation vector string length
+    var hml = 64; // hmac vector string length
 
     // determine the iv
     var ivs = message.substring(0,ivl);
-    var iv      = CryptoJS.enc.Base64.parse(ivs);
+    var iv  = CryptoJS.enc.Base64.parse(ivs);
+
+    // we _need_ a username so if none is present in the encrypted
+    // data, assume master passwd as theusername for legacy vault
+    // data.
+	if (theusername.length === 0) { theusername = input_sp.value; }
 
     // get the keys (passing the iv additionally as a salt modifier)
     var kekm = getKeKm(ivs);
