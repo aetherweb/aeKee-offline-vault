@@ -36,7 +36,7 @@ function doSysMsg(msg)
 
 function dDateTime(timestamp)
 {
-	if (timestamp === null) { timestamp = timeStamp(); }
+	if (timestamp == undefined) { timestamp = timeStamp(); }
 	var d = new Date(timestamp);
 	return d.getFullYear()+'-'+pad(d.getMonth(),2)+'-'+pad(d.getDate(),2)+' '+pad(d.getHours(),2)+':'+pad(d.getMinutes(),2)+':'+pad(d.getSeconds(),2);
 }
@@ -676,7 +676,7 @@ function doLun(key)
   var created  = uns_array[key][8];
   var modified = uns_array[key][9];
 
-  doSysMsg("Item created: "+dDateTime(created)+" - Last modified: "+dDateTime(modified));
+  doSysMsg("Item loaded. Created: "+dDateTime(created)+" - Last modified: "+dDateTime(modified));
 
   // We could save the data of this event but if we do so it
   // appears to the user there's unsaved changes in the array
