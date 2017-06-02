@@ -29,10 +29,16 @@ function doSysMsg(msg)
 	lastSysMsg = msg;
 	try {
 		var s = document.getElementById('sysmsgs');
-		var d = new Date();
-		var date = d.getFullYear()+'-'+pad(d.getMonth(),2)+'-'+pad(d.getDate(),2)+' '+pad(d.getHours(),2)+':'+pad(d.getMinutes(),2)+':'+pad(d.getSeconds(),2);
+		var date = dDateTime();
 		s.innerHTML = date + ' ' + msg + '<br />\n' + s.innerHTML;
 	} catch (err) {}
+}
+
+function dDateTime(timestamp)
+{
+	if (timestamp === null) { timestamp = timeStamp(); }
+	var d = new Date(timestamp);
+	return d.getFullYear()+'-'+pad(d.getMonth(),2)+'-'+pad(d.getDate(),2)+' '+pad(d.getHours(),2)+':'+pad(d.getMinutes(),2)+':'+pad(d.getSeconds(),2);
 }
 
 function cryptOverlayOff()
@@ -467,7 +473,7 @@ function stp()
 
     try {
       s = s.substring(0,len);
-    } 
+    }
     catch (err) { }
    
     document.getElementById('copyTarget').value = s + pwx;
@@ -476,7 +482,7 @@ function stp()
     upUpBtn();
     clearTimeout(timeOut);
     clearTimeout(clipTimeOut);
-    var minutes = 10;
+    var minutes = 60;
     somethingChanged = true;
     timeOut = setTimeout(idleFunc, minutes*60*1000);
   }
@@ -561,8 +567,8 @@ function updateUnsItem(d,u,x,c,l,s,n,pwx)
 			count++;
 			ud = uns_array[key][0];
 	        //unss = uns_array[key][1].split("|||");
-	        uu = uns_array[key][1]; //uname
-	        uc = uns_array[key][2]; //comment
+	        uu = uns_array[key][1]; // uname
+	        uc = uns_array[key][2]; // comment
 	        ul = uns_array[key][3]; // length
 	        us = uns_array[key][4]; // unused
 	        ux = uns_array[key][5]; // salt
@@ -584,19 +590,37 @@ function updateUnsItem(d,u,x,c,l,s,n,pwx)
 	        		uns_array[key][5] = x.trim();
 	        		uns_array[key][6] = n.trim();
 	        		uns_array[key][7] = pwx.trim();
+	        		//uns_array[key][8] = creation date
+	        		uns_array[key][9] = timeStamp(); // last mod
 	        	}
+	        	break;
 	        }
 	    }
 	    if (!foundit)
 	    {
 	    	count++;
-	    	// got to add it then?
-			uns_array.push([d, u, c, l, s, x, n, pwx]);
+	    	// new, add it
+			uns_array.push([d, u, c, l, s, x, n, pwx, timeStamp(), timeStamp()]);
 	    }
 
 	    // update title count
 	    updateTitleCount(count-1);
 	}
+}
+
+function timeStamp()
+{
+	var ts;
+	try 
+	{
+		ts = Date.now();
+	}
+	catch (err) {}
+	if (!ts) 
+	{
+    	ts = new Date().getTime();
+    }
+    return ts;
 }
 
 function hideSugs()
@@ -624,7 +648,7 @@ function idleFunc()
 {
 	if (unsaved_changes)
 	{
-
+		// do something?
 	}
 	else
 	{
@@ -640,15 +664,23 @@ function idleFunc()
 
 function doLun(key)
 {
-  document.getElementById('d').value = uns_array[key][0];
-  //var parts = uns_array[key][1].split("|||");
+  document.getElementById('d').value     = uns_array[key][0];
   document.getElementById('u').value     = uns_array[key][1];
   document.getElementById('cmt').value   = uns_array[key][2];
   document.getElementById('l').value     = uns_array[key][3];
   document.getElementById('sfx').value   = uns_array[key][5];
-  // legacy...
-  document.getElementById('snote').value = uns_array[key][6].replace(/\|:CR:\|/g,'\n');
+  document.getElementById('snote').value = uns_array[key][6];
   document.getElementById('pwx').value   = uns_array[key][7];
+
+  // determine and display item creation / mod date
+  var created  = uns_array[key][8];
+  var modified = uns_array[key][9];
+
+  doSysMsg("Item created: "+dDateTime(created)+" - Last modified: "+dDateTime(modified));
+
+  // We could save the data of this event but if we do so it
+  // appears to the user there's unsaved changes in the array
+  // when in fact there are not.
 
   if (isFirefox)
   {
@@ -658,17 +690,6 @@ function doLun(key)
 	document.getElementById('sfx').focus();
 	document.activeElement.blur();
   }
-
-  /*s = parts[3].trim();
-  if (s > 0)
-  {
-    document.getElementById('pwx').value = '&?';
-  }
-  else
-  {
-  	document.getElementById('pwx').value = '';
-  }
-  */
   document.getElementById('unmatch').innerHTML = '';
   stp();
 }
@@ -889,7 +910,7 @@ function doSaveUNS()
   }
   if (addmark)
   {
-  	uns_array[key+1] == ['z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker'];
+  	uns_array[key+1] == ['z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker'];
   }
   encrypted = encryptAndMac(JSON.stringify(uns_array));
 
@@ -1123,7 +1144,7 @@ function doUncry()
 		if (encUn.length === 0)
 		{
 			marker = true;
-			uns_array[0] = ['z.Z.z.Marker', 'z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker'];
+			uns_array[0] = ['z.Z.z.Marker', 'z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker','z.Z.z.Marker'];
 		}
 		else
 		{
@@ -1140,48 +1161,11 @@ function doUncry()
 				console.log(err); 
 			}
 
-			// might be old school
+			// OK?
 			if ((uns_array.length > 0) && (decrypted.match(/z.Z.z.Marker/)))
 			{
 				// no we're looking good. Assume marker??
 				marker = true;
-			}
-			else // old school
-			{
-				try
-				{
-					lines = decrypted.split('\n');
-					for(var i = 0; i < lines.length; i++)
-					{
-						a = lines[i].split("|:|");
-						a[0] = a[0].trim();
-
-						parts = a[1].split("|||");
-						for (j=0; j<=6; j++)
-						{
-							try 
-							{
-						      	parts[j] = parts[j].trim();
-						        if (parts[j] == 'undefined') 
-						        {   
-						            parts[j] = '';
-						        }
-							}
-							catch (err) { parts[j] = ''; }
-						}
-
-						// If this item is blank in d or u do not add it
-						if ((a[0].length>0) && (parts[0].length>0))
-						{
-							uns_array[i] = [a[0], parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6]];
-							if (a[0] == 'z.Z.z.Marker') { marker = true; }
-						}
-					}
-				}
-				catch (err) 
-				{ 
-					console.log(err); 
-				}
 			}
 		}
 
