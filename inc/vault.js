@@ -682,12 +682,13 @@ function doLun(key)
   // appears to the user there's unsaved changes in the array
   // when in fact there are not.
 
-  if (isFirefox)
+  if ((isFirefox) || (isSafari))
   {
   	// ff still shows placeholders!
 	document.getElementById('u').focus();
 	document.getElementById('cmt').focus();
 	document.getElementById('sfx').focus();
+	document.getElementById('pwx').focus();
 	document.activeElement.blur();
   }
   document.getElementById('unmatch').innerHTML = '';
