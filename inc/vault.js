@@ -604,7 +604,7 @@ function updateUnsItem(d,u,x,c,l,s,n,pwx)
 	    }
 
 	    // update title count
-	    updateTitleCount(count-1);
+	    updateTitleCount(uns_array.length-1);
 	}
 }
 
